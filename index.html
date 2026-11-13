@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Past, Present, Future — A Tarot Reading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #16121c;
+    --plum: #241b2e;
+    --plum-2: #2d2138;
+    --parchment: #ece3d2;
+    --parchment-dim: #b9ad9a;
+    --gold: #c9a94f;
+    --gold-bright: #e2c377;
+    --burgundy: #4a1620;
+    --burgundy-2: #661d29;
+    --line: rgba(201,169,79,0.35);
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0;
+    background: radial-gradient(ellipse at top, var(--plum-2) 0%, var(--ink) 62%);
+    color: var(--parchment);
+    font-family: 'EB Garamond', serif;
+    min-height: 100vh;
+  }
+  .stars{
+    position: fixed; inset:0; pointer-events:none; z-index:0; opacity:0.5;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, var(--gold) 0, transparent 60%),
+      radial-gradient(1px 1px at 80% 15%, var(--gold) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 30% 70%, var(--gold) 0, transparent 60%),
+      radial-gradient(1px 1px at 60% 40%, var(--gold) 0, transparent 60%),
+      radial-gradient(1px 1px at 90% 80%, var(--gold) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 45% 12%, var(--gold) 0, transparent 60%),
+      radial-gradient(1px 1px at 15% 55%, var(--gold) 0, transparent 60%),
+      radial-gradient(1px 1px at 70% 90%, var(--gold) 0, transparent 60%);
+  }
+  .wrap{
+    position: relative; z-index:1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  header{
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .eyebrow-mark{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+    margin: 0 0 6px;
+  }
+  h1{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: clamp(38px, 6vw, 62px);
+    line-height: 1.05;
+    margin: 0 0 18px;
+    color: var(--parchment);
+  }
+  header p.sub{
+    max-width: 480px;
+    margin: 0 auto;
+    color: var(--parchment-dim);
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  .draw-area{
+    display:flex; flex-direction:column; align-items:center;
+    margin-bottom: 40px;
+  }
+  button#drawBtn{
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    letter-spacing: 0.03em;
+    padding: 14px 38px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.35s ease, color 0.35s ease, box-shadow 0.35s ease;
+    position: relative;
+  }
+  button#drawBtn:hover{
+    background: var(--gold);
+    color: var(--ink);
+  }
+  button#drawBtn:focus-visible{
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 4px;
+  }
+  button#drawBtn:disabled{
+    opacity: 0.5;
+    cursor: default;
+  }
+  .cards-row{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 28px;
+    margin-bottom: 8px;
+  }
+  .slot{
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .position-label{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--gold-bright);
+    margin-bottom: 4px;
+  }
+  .position-caption{
+    font-size: 14px;
+    font-style: italic;
+    color: var(--parchment-dim);
+    margin-bottom: 18px;
+  }
+  .card-scene{
+    width: 100%;
+    max-width: 220px;
+    aspect-ratio: 5 / 8;
+    perspective: 1400px;
+  }
+  .card-inner{
+    position: relative;
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 1.1s cubic-bezier(.4,.2,.15,1);
+  }
+  .card-inner.flipped{
+    transform: rotateY(180deg);
+  }
+  .card-face{
+    position: absolute; inset:0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    border: 1px solid var(--gold);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    overflow: hidden;
+  }
+  .card-back{
+    background:
+      repeating-linear-gradient(45deg, transparent 0 8px, rgba(201,169,79,0.08) 8px 9px),
+      linear-gradient(160deg, var(--burgundy) 0%, var(--burgundy-2) 100%);
+  }
+  .card-back .back-motif{
+    width: 62%; height: 62%;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-back .back-motif::before{
+    content:'';
+    width: 55%; height: 55%;
+    border: 1px solid var(--line);
+    transform: rotate(45deg);
+  }
+  .card-front{
+    background: linear-gradient(180deg, #211a29 0%, #16121c 100%);
+    transform: rotateY(180deg);
+    padding: 16px 12px 14px;
+    justify-content: flex-start;
+  }
+  .card-front.has-art{
+    padding: 0;
+  }
+  .card-front .card-art{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 9px;
+  }
+  .card-front .numeral{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .card-front svg{
+    width: 78px; height: 78px;
+    margin: 4px 0 10px;
+  }
+  .card-front .card-name{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 21px;
+    text-align: center;
+    color: var(--parchment);
+    line-height: 1.15;
+    padding: 0 6px;
+  }
+  .card-front .keywords{
+    margin-top: 8px;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--parchment-dim);
+    text-align:center;
+    padding: 0 10px;
+  }
+  .readings{
+    margin-top: 44px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 28px;
+  }
+  .reading{
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+  .reading.show{
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reading h3{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin: 0 0 4px;
+    color: var(--gold-bright);
+  }
+  .reading .position-tag{
+    font-size: 13px;
+    color: var(--parchment-dim);
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+  .reading h4{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--gold);
+    margin: 14px 0 4px;
+  }
+  .reading p{
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--parchment);
+    margin: 0;
+  }
+  .memory-note{
+    text-align:center;
+    margin-top: 14px;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--parchment-dim);
+    min-height: 1.4em;
+  }
+  footer{
+    text-align:center;
+    margin-top: 60px;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--parchment-dim);
+  }
+  @media (max-width: 720px){
+    .cards-row, .readings{
+      grid-template-columns: 1fr;
+      max-width: 260px;
+      margin-left:auto; margin-right:auto;
+    }
+    .reading{ max-width: none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .card-inner, .reading{ transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="wrap">
+  <header>
+    <p class="eyebrow-mark">a small ritual</p>
+    <h1>Past, Present, Future</h1>
+    <p class="sub">Draw three cards from the Major Arcana. The first speaks to what shaped you, the second to where you stand, the third to what is arriving.</p>
+  </header>
+
+  <div class="draw-area">
+    <button id="drawBtn">Draw the cards</button>
+    <p class="memory-note" id="memoryNote"></p>
+  </div>
+
+  <div class="cards-row" id="cardsRow">
+    <div class="slot">
+      <div class="position-label">Past</div>
+      <div class="position-caption">what shaped you</div>
+      <div class="card-scene"><div class="card-inner" id="inner-0">
+        <div class="card-face card-back"><div class="back-motif"></div></div>
+        <div class="card-face card-front" id="front-0"></div>
+      </div></div>
+    </div>
+    <div class="slot">
+      <div class="position-label">Present</div>
+      <div class="position-caption">where you stand</div>
+      <div class="card-scene"><div class="card-inner" id="inner-1">
+        <div class="card-face card-back"><div class="back-motif"></div></div>
+        <div class="card-face card-front" id="front-1"></div>
+      </div></div>
+    </div>
+    <div class="slot">
+      <div class="position-label">Future</div>
+      <div class="position-caption">what is arriving</div>
+      <div class="card-scene"><div class="card-inner" id="inner-2">
+        <div class="card-face card-back"><div class="back-motif"></div></div>
+        <div class="card-face card-front" id="front-2"></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="readings" id="readings">
+    <div class="reading" id="reading-0"></div>
+    <div class="reading" id="reading-1"></div>
+    <div class="reading" id="reading-2"></div>
+  </div>
+
+  <footer>Per aspera ad astra — through hardship, to the stars.</footer>
+</div>
+
+<script>
+const DECK = [
+  { n:'0', name:'The Fool', img:'images/the-fool.jpg', keywords:'beginnings, trust, the leap', meaning:'A fresh start, unwritten and unguarded. It asks you to step forward before you have all the answers, trusting the ground will meet your feet.', symbolism:'A young traveler stands at a cliff\'s edge, face turned to the sky rather than the drop below. A small dog nips at his heel, a voice of instinct trying to be heard. A white rose in his hand marks innocence that has chosen to move anyway.' },
+  { n:'I', name:'The Magician', img:'images/the-magician.jpg', keywords:'will, resourcefulness, action', meaning:'You already hold what you need. This card marks the moment raw potential becomes deliberate action, when intention is finally matched by the means to carry it out.', symbolism:'One hand points to the heavens, the other to the earth, channeling idea into matter. On the table before him lie a cup, a wand, a sword, and a coin — every tool of experience, ready and within reach.' },
+  { n:'II', name:'The High Priestess', img:'images/the-high-priestess.jpg', keywords:'intuition, mystery, the unseen', meaning:'Not everything can be reasoned into being known. This card asks you to trust the quiet knowing beneath the surface before you rush toward explanation.', symbolism:'She sits between two pillars, one dark and one light, guarding a threshold. A crescent moon rests at her feet, and a veil behind her hides what is not yet meant to be revealed.' },
+  { n:'III', name:'The Empress', img:'images/the-empress.jpg', keywords:'abundance, nurture, creation', meaning:'Something you have tended is ready to flourish. This is the energy of growth given room, of care that produces real, tangible life.', symbolism:'She reclines among ripe wheat and flowing water, a crown of stars above her. Her setting is lush and unhurried, a field that grew because it was allowed to.' },
+  { n:'IV', name:'The Emperor', img:'images/the-emperor.jpg', keywords:'structure, authority, discipline', meaning:'Stability here comes from structure, not sentiment. This card calls for clear boundaries, firm decisions, and the discipline to hold a course.', symbolism:'He sits on a stone throne carved with ram\'s heads, armor visible beneath his robe. The mountains behind him are unmoved and enduring, mirroring the order he imposes.' },
+  { n:'V', name:'The Hierophant', img:'images/the-hierophant.jpg', keywords:'tradition, teaching, belonging', meaning:'A structure larger than yourself offers guidance here — a teacher, an institution, a shared code. This card favors the tested path over the improvised one.', symbolism:'Seated between two pillars like a bridge between worlds, he raises two fingers in blessing while two acolytes kneel before him, keys of consecrated knowledge crossed at his feet.' },
+  { n:'VI', name:'The Lovers', img:'images/the-lovers.jpg', keywords:'union, choice, alignment', meaning:'A real choice is in front of you, one that asks you to act from your values rather than convenience. Where it appears, it points to a joining that only works when both sides are honest.', symbolism:'A man and woman stand beneath a radiant angel, an unguarded garden behind them. A tree of flames and a tree of fruit flank them, temptation and vitality held in balance.' },
+  { n:'VII', name:'The Chariot', img:'images/the-chariot.jpg', keywords:'willpower, drive, momentum', meaning:'Forward motion through sheer will. Two opposing forces are yoked together here and made to pull the same direction, carrying you past resistance rather than around it.', symbolism:'A armored figure rides a chariot drawn by two sphinxes, one black and one white, that would pull apart if not held by focus alone. No reins are shown — only intent keeps them aligned.' },
+  { n:'VIII', name:'Strength', img:'images/strength.jpg', keywords:'courage, patience, quiet power', meaning:'Real strength here is gentle, not forceful. This card favors steadiness and compassion over confrontation — the kind of courage that soothes rather than subdues.', symbolism:'A woman calmly closes a lion\'s jaw with her bare hands, an infinity symbol suspended above her head. There is no struggle in her posture, only quiet command.' },
+  { n:'IX', name:'The Hermit', img:'images/the-hermit.jpg', keywords:'solitude, reflection, inner light', meaning:'A season for withdrawal, not isolation for its own sake but retreat in service of clarity. The answer you are looking for will not be found in noise.', symbolism:'An old man stands alone on a snowy peak, a lantern with a six-pointed star held out before him, its light small but sufficient to see the next step.' },
+  { n:'X', name:'Wheel of Fortune', img:'images/wheel-of-fortune.jpg', keywords:'cycles, fate, turning point', meaning:'Change is arriving on its own schedule, not yours. This card marks a turning of circumstance — fortune shifting up or down — and asks you to move with the cycle rather than against it.', symbolism:'A great wheel turns in the sky, marked with alchemical symbols, while a sphinx balances at its crest, holding a sword of judgment. Creatures at its corners rise and fall with each rotation, unbothered by the movement.' },
+  { n:'XI', name:'Justice', img:'images/justice.jpg', keywords:'truth, balance, consequence', meaning:'Cause and effect are being weighed plainly here. This card calls for fairness, honesty in your own accounting, and acceptance that outcomes tend to match what was actually done.', symbolism:'A crowned figure sits between two pillars holding a raised sword in one hand and a level scale in the other, the sword ready to act on whatever the scale decides.' },
+  { n:'XII', name:'The Hanged Man', img:'images/the-hanged-man.jpg', keywords:'surrender, pause, new perspective', meaning:'Progress here looks like stillness. This card asks you to suspend the usual effort and see the situation from an angle you have been refusing to consider.', symbolism:'A man hangs upside down from a living tree by one foot, his expression untroubled, even lit. A halo surrounds his head, insight arriving precisely because he stopped struggling.' },
+  { n:'XIII', name:'Death', img:'images/death.jpg', keywords:'ending, transition, release', meaning:'Not a literal ending, but a real one all the same — a chapter that has finished and needs to be let go before the next can properly begin.', symbolism:'A skeletal rider in black armor moves across a field where a fallen king lies but new sprouts already push through the ground, and the sun rises steady between two towers on the horizon.' },
+  { n:'XIV', name:'Temperance', img:'images/temperance.jpg', keywords:'balance, patience, integration', meaning:'Two things that seemed opposed can be blended here, but only slowly. This card rewards patience, moderation, and the careful mixing of what doesn\'t naturally combine.', symbolism:'An angel stands with one foot on land and one in water, pouring liquid between two cups in an unbroken stream, neither drop spilled nor rushed.' },
+  { n:'XV', name:'The Devil', img:'images/the-devil.jpg', keywords:'attachment, restriction, temptation', meaning:'Something has become a chain that looks like a choice. This card names the habits, dependencies, or fears that bind you more tightly than they need to.', symbolism:'A horned figure looms over a chained man and woman, their bonds loose enough to slip off, could they see it. Their expressions show they have grown used to the weight.' },
+  { n:'XVI', name:'The Tower', img:'images/the-tower.jpg', keywords:'upheaval, revelation, collapse', meaning:'A structure built on shaky ground is coming down suddenly. It is disruptive and unwelcome, but it clears space that was never sound to begin with.', symbolism:'Lightning strikes a tall tower, its crown blown off in flame as two figures fall from the height. What remains standing afterward is only what was ever load-bearing.' },
+  { n:'XVII', name:'The Star', img:'images/the-star.jpg', keywords:'hope, renewal, quiet faith', meaning:'After difficulty, a calm hope returns. This card doesn\'t promise a fast fix, but it restores a sense that healing and direction are both possible again.', symbolism:'A woman kneels at the edge of a pool beneath a great star and seven smaller ones, pouring water from two jugs — one back into the pool, one onto the earth, replenishing both.' },
+  { n:'XVIII', name:'The Moon', img:'images/the-moon.jpg', keywords:'uncertainty, the unconscious, illusion', meaning:'The path ahead is not fully lit, and something is only half-visible — a fear, a deception, or simply the unknown. This card asks for caution and trust in instinct over appearances.', symbolism:'A moon with a troubled face looks down on a winding road between two towers, where a dog and a wolf howl and a crayfish emerges from a dark pool, half of it still hidden below.' },
+  { n:'XIX', name:'The Sun', img:'images/the-sun.jpg', keywords:'joy, clarity, vitality', meaning:'A straightforward, warming success. Whatever this card touches tends to be clear rather than complicated — genuine happiness, good health, or simple truth finally visible.', symbolism:'A radiant sun shines over a joyful child riding a white horse, sunflowers standing tall behind a low wall, everything in the scene open and unshadowed.' },
+  { n:'XX', name:'Judgement', img:'images/judgement.jpg', keywords:'awakening, reckoning, calling', meaning:'A moment of reckoning that calls you to rise to something larger — a wake-up call, an honest self-assessment, or the chance to answer for who you have become.', symbolism:'An angel sounds a trumpet from the clouds as figures below rise from open graves, arms lifted, answering a call they cannot ignore.' },
+  { n:'XXI', name:'The World', img:'images/the-world.jpg', keywords:'completion, wholeness, arrival', meaning:'A cycle closes successfully. This card marks real completion — a goal reached, a phase integrated — with the sense that you have become someone slightly larger than before.', symbolism:'A dancing figure holds a wand in each hand, wrapped in a laurel wreath that has no beginning or end, while the four fixed symbols of the zodiac watch from each corner.' }
+];
+
+function sigil(name){
+  const s = 'stroke="#c9a94f" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  const paths = {
+    'The Fool': `<circle cx="50" cy="28" r="10" ${s}/><path d="M50 38 L50 60 M38 50 L62 46 M40 92 L50 60 L62 92" ${s}/><path d="M20 78 Q30 70 40 78" ${s}/>`,
+    'The Magician': `<path d="M50 20 L50 50 M35 65 a15 15 0 1 0 30 0 a15 15 0 1 0 -30 0" ${s}/><path d="M30 85 h40" ${s}/>`,
+    'The High Priestess': `<path d="M25 20 v70 M75 20 v70 M35 75 a15 18 0 0 0 30 0" ${s}/><circle cx="50" cy="55" r="6" ${s}/>`,
+    'The Empress': `<circle cx="50" cy="35" r="12" ${s}/><path d="M50 47 v18 M38 62 h24" ${s}/><path d="M25 88 q25 -18 50 0" ${s}/>`,
+    'The Emperor': `<path d="M28 90 v-35 h44 v35" ${s}/><path d="M28 55 l22 -35 l22 35" ${s}/><circle cx="50" cy="30" r="6" ${s}/>`,
+    'The Hierophant': `<path d="M25 25 v65 M75 25 v65" ${s}/><path d="M38 55 h24 M50 43 v24" ${s}/><circle cx="50" cy="30" r="8" ${s}/>`,
+    'The Lovers': `<circle cx="38" cy="55" r="16" ${s}/><circle cx="62" cy="55" r="16" ${s}/>`,
+    'The Chariot': `<circle cx="50" cy="60" r="18" ${s}/><path d="M50 42 v36 M32 60 h36" ${s}/><path d="M30 30 h40 l-8 15 h-24 z" ${s}/>`,
+    'Strength': `<path d="M30 70 Q50 40 70 70" ${s}/><path d="M42 30 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0" ${s}/><path d="M35 85 h30" ${s}/>`,
+    'The Hermit': `<path d="M50 20 v20 M40 40 h20 l6 50 h-32 z" ${s}/><circle cx="50" cy="20" r="7" ${s}/>`,
+    'Wheel of Fortune': `<circle cx="50" cy="50" r="30" ${s}/><circle cx="50" cy="50" r="6" ${s}/><path d="M50 20 v60 M20 50 h60 M29 29 l42 42 M71 29 l-42 42" ${s}/>`,
+    'Justice': `<path d="M50 20 v55" ${s}/><path d="M25 40 h50" ${s}/><path d="M25 40 l-8 20 h16 z M75 40 l-8 20 h16 z" ${s}/><path d="M38 90 h24" ${s}/>`,
+    'The Hanged Man': `<path d="M30 20 h40" ${s}/><path d="M50 20 v20 l-14 30 M50 40 l14 30" ${s}/><circle cx="50" cy="70" r="10" ${s}/>`,
+    'Death': `<path d="M35 30 a15 18 0 1 0 30 0" ${s}/><circle cx="43" cy="32" r="3" fill="#c9a94f" stroke="none"/><circle cx="57" cy="32" r="3" fill="#c9a94f" stroke="none"/><path d="M50 48 v25 M38 90 l12 -17 l12 17" ${s}/>`,
+    'Temperance': `<path d="M30 30 q20 0 20 20 q0 20 -20 20" ${s}/><path d="M70 30 q-20 0 -20 20 q0 20 20 20" ${s}/><path d="M50 70 v18" ${s}/>`,
+    'The Devil': `<path d="M35 45 l-8 -15 M65 45 l8 -15" ${s}/><path d="M30 45 h40 v25 h-40 z" ${s}/><circle cx="50" cy="30" r="8" ${s}/>`,
+    'The Tower': `<path d="M40 90 v-60 h20 v60" ${s}/><path d="M35 30 h30 l-15 -15 z" ${s}/><path d="M25 20 l10 10 M75 20 l-10 10" ${s}/>`,
+    'The Star': `<path d="M50 20 l7 20 h21 l-17 13 l6 21 l-17 -13 l-17 13 l6 -21 l-17 -13 h21 z" ${s}/>`,
+    'The Moon': `<path d="M60 25 a30 30 0 1 0 0 55 a24 24 0 1 1 0 -55 z" ${s}/>`,
+    'The Sun': `<circle cx="50" cy="50" r="16" ${s}/><path d="M50 22 v-6 M50 78 v6 M22 50 h-6 M78 50 h6 M31 31 l-4 -4 M69 31 l4 -4 M31 69 l-4 4 M69 69 l4 4" ${s}/>`,
+    'Judgement': `<path d="M50 25 v20 M40 50 l10 -8 l10 8 v20 h-20 z" ${s}/><path d="M30 90 q20 -15 40 0" ${s}/>`,
+    'The World': `<ellipse cx="50" cy="55" rx="28" ry="20" ${s}/><path d="M50 20 a10 10 0 1 0 0 0.001" ${s}/>`
+  };
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${paths[name] || ''}</svg>`;
+}
+
+const positions = [
+  {label:'Past', frame:'In your past'},
+  {label:'Present', frame:'In your present'},
+  {label:'Future', frame:'In your future'}
+];
+
+const btn = document.getElementById('drawBtn');
+const memoryNote = document.getElementById('memoryNote');
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+
+// ---------- drawing + rendering ----------
+
+function shuffleThree(){
+  const idx = [...Array(DECK.length).keys()];
+  for(let i = idx.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx.slice(0,3).map(i => DECK[i]);
+}
+
+function findCardsByName(names){
+  return names.map(n => DECK.find(c => c.name === n)).filter(Boolean);
+}
+
+function renderReading(card, i){
+  const r = document.getElementById('reading-'+i);
+  r.innerHTML = `
+    <h3>${card.name}</h3>
+    <div class="position-tag">${positions[i].label} — ${card.keywords}</div>
+    <h4>Meaning</h4>
+    <p>${positions[i].frame}, this card suggests: ${card.meaning}</p>
+  `;
+  r.classList.add('show');
+}
+
+function showDrawn(drawn, { instant = false } = {}){
+  drawn.forEach((card, i) => {
+    const front = document.getElementById('front-'+i);
+    if(card.img){
+      front.classList.add('has-art');
+      front.innerHTML = `<img class="card-art" src="${card.img}" alt="${card.name}">`;
+    } else {
+      front.classList.remove('has-art');
+      front.innerHTML = `
+        <div class="numeral">${card.n}</div>
+        ${sigil(card.name)}
+        <div class="card-name">${card.name}</div>
+        <div class="keywords">${card.keywords}</div>
+      `;
+    }
+  });
+
+  if(instant){
+    drawn.forEach((card, i) => {
+      document.getElementById('inner-'+i).classList.add('flipped');
+      renderReading(card, i);
+    });
+    return;
+  }
+
+  drawn.forEach((card, i) => {
+    setTimeout(() => {
+      document.getElementById('inner-'+i).classList.add('flipped');
+      setTimeout(() => renderReading(card, i), 650);
+    }, i * 700);
+  });
+}
+
+function lockButtonUntil(expiresAt){
+  btn.disabled = true;
+  const days = Math.max(1, Math.ceil((expiresAt - Date.now()) / (24*60*60*1000)));
+  btn.textContent = 'Reading set';
+  memoryNote.textContent = `Your reading holds until ${new Date(expiresAt).toLocaleDateString()} (about ${days} day${days===1?'':'s'}).`;
+}
+
+function unlockButton(){
+  btn.disabled = false;
+  btn.textContent = 'Draw the cards';
+  memoryNote.textContent = '';
+}
+
+// ---------- backend memory (works once deployed behind /api/reading) ----------
+
+async function fetchStoredReading(){
+  try{
+    const res = await fetch('/api/reading');
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.reading || null;
+  }catch(e){
+    return null; // no backend available (e.g. opened as a local file) — degrade gracefully
+  }
+}
+
+async function saveReading(drawn){
+  try{
+    await fetch('/api/reading', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cards: drawn.map(c => c.name) })
+    });
+  }catch(e){ /* no backend available, nothing to persist */ }
+}
+
+async function init(){
+  const stored = await fetchStoredReading();
+  if(stored && stored.expiresAt > Date.now()){
+    const drawn = findCardsByName(stored.cards);
+    if(drawn.length === 3){
+      showDrawn(drawn, { instant: true });
+      lockButtonUntil(stored.expiresAt);
+      return;
+    }
+  }
+  unlockButton();
+}
+
+btn.addEventListener('click', () => {
+  btn.disabled = true;
+  btn.textContent = 'Shuffling…';
+
+  for(let i=0;i<3;i++){
+    document.getElementById('inner-'+i).classList.remove('flipped');
+    document.getElementById('reading-'+i).classList.remove('show');
+    document.getElementById('reading-'+i).innerHTML = '';
+  }
+
+  const drawn = shuffleThree();
+
+  setTimeout(() => {
+    showDrawn(drawn);
+    setTimeout(async () => {
+      await saveReading(drawn);
+      lockButtonUntil(Date.now() + THREE_DAYS_MS);
+    }, 2 * 700 + 650 + 200);
+  }, 300);
+});
+
+init();
+</script>
+</body>
+</html>
